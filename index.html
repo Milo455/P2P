@@ -112,6 +112,44 @@
         <div class="alert" data-alert></div>
       </section>
 
+      <section class="card storage">
+        <h2>Respaldo local y en la nube</h2>
+        <p class="hint">
+          Los datos se guardan automáticamente en este navegador. Puedes agregar
+          una URL de respaldo en la nube (por ejemplo, un endpoint de JSON
+          seguro) para sincronizar manualmente.
+        </p>
+        <div class="storage-grid">
+          <div>
+            <h3>Local</h3>
+            <p class="hint">Guarda automáticamente cada cambio.</p>
+            <button type="button" class="btn btn-secondary" data-local-restore>
+              Restaurar datos locales
+            </button>
+          </div>
+          <div>
+            <h3>Nube</h3>
+            <label class="field">
+              <span>URL del respaldo</span>
+              <input type="url" placeholder="https://..." data-cloud-endpoint />
+            </label>
+            <label class="field">
+              <span>API Key (opcional)</span>
+              <input type="password" placeholder="Token" data-cloud-key />
+            </label>
+            <div class="storage-actions">
+              <button type="button" class="btn" data-cloud-save>
+                Guardar en la nube
+              </button>
+              <button type="button" class="btn btn-secondary" data-cloud-load>
+                Cargar desde la nube
+              </button>
+            </div>
+            <p class="status" data-cloud-status></p>
+          </div>
+        </div>
+      </section>
+
       <section class="card">
         <h2>Detalle FIFO</h2>
         <div class="table-wrapper">

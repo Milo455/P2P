@@ -121,6 +121,42 @@ input {
   display: block;
 }
 
+.storage-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  margin-top: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.field input {
+  font-weight: 400;
+}
+
+.storage-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.status {
+  margin-top: 0.75rem;
+  font-size: 0.95rem;
+  color: #1d4ed8;
+  min-height: 1.2rem;
+}
+
+.status-error {
+  color: #b91c1c;
+}
+
 footer {
   padding: 2rem 1.5rem 3rem;
   text-align: center;
