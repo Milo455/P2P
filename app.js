@@ -59,6 +59,14 @@ const formatNumber = (value) => currencyFormatter.format(value || 0);
 
 const formatDays = (days) => (Number.isFinite(days) ? `${days} días` : "-");
 
+const getTodayDateValue = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const emptyData = () =>
   TABLE_KEYS.reduce((acc, key) => {
     acc[key] = [];
@@ -87,7 +95,11 @@ const clearForm = (form, key) => {
   TABLE_CONFIG[key].columns.forEach((column) => {
     const input = form.querySelector(`[name="${column.name}"]`);
     if (input) {
-      input.value = "";
+      if (column.type === "date") {
+        input.value = getTodayDateValue();
+      } else {
+        input.value = "";
+      }
     }
   });
 };
@@ -384,6 +396,11 @@ if (pageType === "history") {
   TABLE_KEYS.forEach((key) => {
     const form = document.querySelector(`[data-form="${key}"]`);
     const addButton = form?.querySelector("[data-action=add]");
+    const dateInput = form?.querySelector('input[type="date"][name="date"]');
+
+    if (dateInput && !dateInput.value) {
+      dateInput.value = getTodayDateValue();
+    }
 
     addButton?.addEventListener("click", () => {
       const data = loadData();
