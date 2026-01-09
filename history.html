@@ -23,75 +23,33 @@
     <main class="columns">
       <div class="column">
         <section class="card">
-          <h2>1) Compra de COP con USD</h2>
+          <h2>Historial global (ordenado)</h2>
           <p class="hint">
-            Registra cada compra de COP indicando la fecha, USD utilizados y COP
-            recibidos.
+            Todas las transacciones ordenadas por fecha para una vista general.
           </p>
-          <div class="table-wrapper">
-            <table data-table="usd-cop">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>USD usados</th>
-                  <th>COP recibidos</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-          <button type="button" class="btn" data-add="usd-cop">
-            + Agregar compra USD → COP
-          </button>
+          <ol class="transaction-list" data-list="all"></ol>
         </section>
 
         <section class="card">
-          <h2>2) Compra de USDT con COP</h2>
+          <h2>Historial por tipo</h2>
           <p class="hint">
-            Cada registro consume COP anteriores (FIFO) y crea lotes de USDT con
-            su costo en USD.
+            Transacciones separadas por categoría y ordenadas cronológicamente.
           </p>
-          <div class="table-wrapper">
-            <table data-table="cop-usdt">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>COP usados</th>
-                  <th>USDT recibidos</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-          <button type="button" class="btn" data-add="cop-usdt">
-            + Agregar compra COP → USDT
-          </button>
-        </section>
 
-        <section class="card">
-          <h2>3) Venta de USDT por USD</h2>
-          <p class="hint">
-            Cada venta consume USDT anteriores (FIFO) y calcula ganancia o pérdida
-            en USD.
-          </p>
-          <div class="table-wrapper">
-            <table data-table="usdt-usd">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>USDT vendidos</th>
-                  <th>USD recibidos</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
+          <div class="history-groups">
+            <div>
+              <h3>Compras USD → COP</h3>
+              <ol class="transaction-list" data-list="usd-cop"></ol>
+            </div>
+            <div>
+              <h3>Compras COP → USDT</h3>
+              <ol class="transaction-list" data-list="cop-usdt"></ol>
+            </div>
+            <div>
+              <h3>Ventas USDT → USD</h3>
+              <ol class="transaction-list" data-list="usdt-usd"></ol>
+            </div>
           </div>
-          <button type="button" class="btn" data-add="usdt-usd">
-            + Agregar venta USDT → USD
-          </button>
         </section>
       </div>
 

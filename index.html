@@ -20,27 +20,83 @@
       </div>
     </header>
 
-    <main class="columns">
-      <div class="column">
-        <section class="card">
+    <main class="page-content">
+      <section class="transaction-columns">
+        <article class="card transaction-card" data-form="usd-cop">
           <h2>1) Compra de COP con USD</h2>
           <p class="hint">
-            Última transacción registrada (para ver el historial completo visita la página
-            de historial).
+            Agrega una compra y usa la última transacción solo como referencia.
           </p>
-          <div class="table-wrapper">
-            <table data-table="usd-cop">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>USD usados</th>
-                  <th>COP recibidos</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
+          <div class="form-grid">
+            <label>
+              Fecha
+              <input type="date" name="date" />
+            </label>
+            <label>
+              USD usados
+              <input type="number" name="usd" placeholder="0.00" />
+            </label>
+            <label>
+              COP recibidos
+              <input type="number" name="cop" placeholder="0" />
+            </label>
           </div>
-        </section>
+          <button class="btn" type="button" data-action="add">
+            + Agregar compra USD → COP
+          </button>
+          <div class="last-transaction" data-last="usd-cop"></div>
+        </article>
+
+        <article class="card transaction-card" data-form="cop-usdt">
+          <h2>2) Compra de USDT con COP</h2>
+          <p class="hint">
+            Agrega una compra y usa la última transacción solo como referencia.
+          </p>
+          <div class="form-grid">
+            <label>
+              Fecha
+              <input type="date" name="date" />
+            </label>
+            <label>
+              COP usados
+              <input type="number" name="cop" placeholder="0" />
+            </label>
+            <label>
+              USDT recibidos
+              <input type="number" name="usdt" placeholder="0.00" />
+            </label>
+          </div>
+          <button class="btn" type="button" data-action="add">
+            + Agregar compra COP → USDT
+          </button>
+          <div class="last-transaction" data-last="cop-usdt"></div>
+        </article>
+
+        <article class="card transaction-card" data-form="usdt-usd">
+          <h2>3) Venta de USDT por USD</h2>
+          <p class="hint">
+            Agrega una venta y usa la última transacción solo como referencia.
+          </p>
+          <div class="form-grid">
+            <label>
+              Fecha
+              <input type="date" name="date" />
+            </label>
+            <label>
+              USDT vendidos
+              <input type="number" name="usdt" placeholder="0.00" />
+            </label>
+            <label>
+              USD recibidos
+              <input type="number" name="usd" placeholder="0.00" />
+            </label>
+          </div>
+          <button class="btn" type="button" data-action="add">
+            + Agregar venta USDT → USD
+          </button>
+          <div class="last-transaction" data-last="usdt-usd"></div>
+        </article>
+      </section>
 
         <section class="card">
           <h2>2) Compra de USDT con COP</h2>
@@ -80,32 +136,9 @@
               <tbody></tbody>
             </table>
           </div>
-        </section>
-      </div>
-
-      <div class="column">
-        <section class="card results">
-          <h2>Resumen fiscal</h2>
-          <div class="results-grid">
-            <div>
-              <h3>Totales</h3>
-              <ul>
-                <li><strong>USD recibidos:</strong> <span data-total="proceeds">0.00</span></li>
-                <li><strong>Costo base (USD):</strong> <span data-total="basis">0.00</span></li>
-                <li><strong>Ganancia neta:</strong> <span data-total="gain">0.00</span></li>
-              </ul>
-            </div>
-            <div>
-              <h3>Inventario pendiente</h3>
-              <ul>
-                <li><strong>COP disponibles:</strong> <span data-total="cop">0.00</span></li>
-                <li><strong>USDT disponibles:</strong> <span data-total="usdt">0.00</span></li>
-              </ul>
-            </div>
-          </div>
-          <div class="alert" data-alert></div>
-        </section>
-      </div>
+        </div>
+        <div class="alert" data-alert></div>
+      </section>
     </main>
 
     <footer>

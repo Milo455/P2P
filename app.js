@@ -1,23 +1,26 @@
 const TABLE_CONFIG = {
   "usd-cop": {
+    label: "Compra USD → COP",
     columns: [
-      { name: "date", type: "date" },
-      { name: "usd", type: "number", placeholder: "0.00" },
-      { name: "cop", type: "number", placeholder: "0", format: "cop" },
+      { name: "date", type: "date", label: "Fecha" },
+      { name: "usd", type: "number", placeholder: "0.00", label: "USD usados" },
+      { name: "cop", type: "number", placeholder: "0", label: "COP recibidos" },
     ],
   },
   "cop-usdt": {
+    label: "Compra COP → USDT",
     columns: [
-      { name: "date", type: "date" },
-      { name: "cop", type: "number", placeholder: "0", format: "cop" },
-      { name: "usdt", type: "number", placeholder: "0.00" },
+      { name: "date", type: "date", label: "Fecha" },
+      { name: "cop", type: "number", placeholder: "0", label: "COP usados" },
+      { name: "usdt", type: "number", placeholder: "0.00", label: "USDT recibidos" },
     ],
   },
   "usdt-usd": {
+    label: "Venta USDT → USD",
     columns: [
-      { name: "date", type: "date" },
-      { name: "usdt", type: "number", placeholder: "0.00" },
-      { name: "usd", type: "number", placeholder: "0.00" },
+      { name: "date", type: "date", label: "Fecha" },
+      { name: "usdt", type: "number", placeholder: "0.00", label: "USDT vendidos" },
+      { name: "usd", type: "number", placeholder: "0.00", label: "USD recibidos" },
     ],
   },
 };
@@ -80,112 +83,131 @@ const saveData = (data) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 };
 
-const readTable = (tableKey) => {
-  const rows = document.querySelectorAll(
-    `[data-table="${tableKey}"] tbody tr`
-  );
-  const config = TABLE_CONFIG[tableKey];
-
-  return Array.from(rows)
-    .map((row) => {
-      const values = {};
-      config.columns.forEach((column, index) => {
-        const input = row.children[index]?.querySelector("input");
-        if (!input) return;
-        values[column.name] =
-          column.type === "date" ? input.value : numberParser(input.value);
-      });
-      return values;
-    })
-    .filter((row) => Object.values(row).some((value) => value));
-};
-
-const addRow = (tableKey, entry = {}) => {
-  const table = document.querySelector(`[data-table="${tableKey}"] tbody`);
-  const config = TABLE_CONFIG[tableKey];
-  const row = document.createElement("tr");
-
-  config.columns.forEach((column) => {
-    const cell = document.createElement("td");
-    const input = document.createElement("input");
-    input.type = column.format === "cop" ? "text" : column.type;
-    input.name = column.name;
-    input.placeholder = column.placeholder || "";
-    if (entry[column.name]) {
-      input.value = entry[column.name];
+const clearForm = (form, key) => {
+  TABLE_CONFIG[key].columns.forEach((column) => {
+    const input = form.querySelector(`[name="${column.name}"]`);
+    if (input) {
+      input.value = "";
     }
-    input.addEventListener("input", syncFromInputs);
-    cell.appendChild(input);
-    row.appendChild(cell);
-  });
-
-  const actionCell = document.createElement("td");
-  const removeButton = document.createElement("button");
-  removeButton.type = "button";
-  removeButton.className = "btn btn-secondary";
-  removeButton.textContent = "Eliminar";
-  removeButton.addEventListener("click", () => {
-    row.remove();
-    syncFromInputs();
-  });
-  actionCell.appendChild(removeButton);
-  row.appendChild(actionCell);
-
-  table.appendChild(row);
-};
-
-const renderHistoryTables = (data) => {
-  TABLE_KEYS.forEach((key) => {
-    const tbody = document.querySelector(`[data-table="${key}"] tbody`);
-    tbody.innerHTML = "";
-    if (data[key].length === 0) {
-      addRow(key);
-      return;
-    }
-    data[key].forEach((entry) => addRow(key, entry));
   });
 };
 
-const renderSummaryTables = (data) => {
-  TABLE_KEYS.forEach((key) => {
-    const tbody = document.querySelector(`[data-table="${key}"] tbody`);
-    const columns = TABLE_CONFIG[key].columns;
-    tbody.innerHTML = "";
-    const lastEntry = data[key][data[key].length - 1];
+const readEntryFromForm = (form, key) => {
+  const entry = {};
+  let valid = true;
 
-    if (!lastEntry) {
-      const row = document.createElement("tr");
-      row.className = "empty-row";
-      const cell = document.createElement("td");
-      cell.colSpan = columns.length;
-      cell.textContent = "Sin transacciones registradas";
-      row.appendChild(cell);
-      tbody.appendChild(row);
+  TABLE_CONFIG[key].columns.forEach((column) => {
+    const input = form.querySelector(`[name="${column.name}"]`);
+    if (!input) {
+      valid = false;
       return;
     }
 
-    const row = document.createElement("tr");
-    columns.forEach((column) => {
-      const cell = document.createElement("td");
-      const value = lastEntry[column.name];
-      cell.textContent =
-        column.type === "number" ? formatNumber(value) : value || "-";
-      row.appendChild(cell);
+    if (column.type === "date") {
+      entry[column.name] = input.value;
+      if (!input.value) {
+        valid = false;
+      }
+    } else {
+      const parsed = numberParser(input.value);
+      entry[column.name] = parsed;
+      if (!Number.isFinite(parsed) || parsed <= 0) {
+        valid = false;
+      }
+    }
+  });
+
+  return valid ? entry : null;
+};
+
+const createEntrySummaryList = (key, entry) => {
+  const list = document.createElement("ul");
+  TABLE_CONFIG[key].columns.forEach((column) => {
+    const value = entry[column.name];
+    const display =
+      column.type === "number" ? formatNumber(value) : value || "-";
+    const item = document.createElement("li");
+    item.innerHTML = `<strong>${column.label}:</strong> ${display}`;
+    list.appendChild(item);
+  });
+  return list;
+};
+
+const renderLastTransactions = (data) => {
+  TABLE_KEYS.forEach((key) => {
+    const container = document.querySelector(`[data-last="${key}"]`);
+    if (!container) return;
+    container.innerHTML = "";
+
+    const title = document.createElement("strong");
+    title.textContent = "Última transacción registrada";
+    container.appendChild(title);
+
+    const entry = data[key][data[key].length - 1];
+    if (!entry) {
+      const empty = document.createElement("div");
+      empty.className = "empty-row";
+      empty.textContent = "Sin transacciones registradas.";
+      container.appendChild(empty);
+      return;
+    }
+
+    container.appendChild(createEntrySummaryList(key, entry));
+  });
+};
+
+const sortEntriesByDate = (entries) =>
+  [...entries].sort((a, b) => {
+    const dateA = dateParser(a.date)?.getTime() ?? 0;
+    const dateB = dateParser(b.date)?.getTime() ?? 0;
+    return dateA - dateB;
+  });
+
+const formatEntryLine = (key, entry) => {
+  const parts = TABLE_CONFIG[key].columns.map((column) => {
+    const value = entry[column.name];
+    const display =
+      column.type === "number" ? formatNumber(value) : value || "-";
+    return `${column.label}: ${display}`;
+  });
+  return parts.join(" • ");
+};
+
+const renderHistoryLists = (data) => {
+  TABLE_KEYS.forEach((key) => {
+    const list = document.querySelector(`[data-list="${key}"]`);
+    if (!list) return;
+    list.innerHTML = "";
+
+    const sortedEntries = sortEntriesByDate(data[key]);
+    sortedEntries.forEach((entry) => {
+      const item = document.createElement("li");
+      item.textContent = formatEntryLine(key, entry);
+      list.appendChild(item);
     });
-    tbody.appendChild(row);
   });
-};
 
-const collectAllTables = () =>
-  TABLE_KEYS.reduce((acc, key) => {
-    acc[key] = readTable(key);
-    return acc;
-  }, {});
+  const globalList = document.querySelector('[data-list="all"]');
+  if (globalList) {
+    globalList.innerHTML = "";
+    const combined = TABLE_KEYS.flatMap((key) =>
+      data[key].map((entry) => ({ key, entry }))
+    );
+    const sortedCombined = combined.sort((a, b) => {
+      const dateA = dateParser(a.entry.date)?.getTime() ?? 0;
+      const dateB = dateParser(b.entry.date)?.getTime() ?? 0;
+      return dateA - dateB;
+    });
 
-const syncFromInputs = () => {
-  const data = collectAllTables();
-  saveData(data);
-  calculate(data);
+    sortedCombined.forEach(({ key, entry }) => {
+      const item = document.createElement("li");
+      item.textContent = `${TABLE_CONFIG[key].label} — ${formatEntryLine(
+        key,
+        entry
+      )}`;
+      globalList.appendChild(item);
+    });
+  }
 };
 
 const calculate = (data) => {
@@ -356,16 +378,27 @@ const pageType = document.body?.dataset.page || "main";
 const storedData = loadData();
 
 if (pageType === "history") {
-  renderHistoryTables(storedData);
+  renderHistoryLists(storedData);
+  calculate(storedData);
+} else {
   TABLE_KEYS.forEach((key) => {
-    const addButton = document.querySelector(`[data-add="${key}"]`);
+    const form = document.querySelector(`[data-form="${key}"]`);
+    const addButton = form?.querySelector("[data-action=add]");
+
     addButton?.addEventListener("click", () => {
-      addRow(key);
-      syncFromInputs();
+      const data = loadData();
+      const entry = readEntryFromForm(form, key);
+      if (!entry) {
+        return;
+      }
+      data[key].push(entry);
+      saveData(data);
+      clearForm(form, key);
+      renderLastTransactions(data);
+      calculate(data);
     });
   });
-  syncFromInputs();
-} else {
-  renderSummaryTables(storedData);
+
+  renderLastTransactions(storedData);
   calculate(storedData);
 }
