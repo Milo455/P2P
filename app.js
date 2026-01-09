@@ -38,7 +38,7 @@ const dateParser = (value) => {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
-const addRow = (tableKey) => {
+const addRow = (tableKey, values = {}) => {
   const table = document.querySelector(`[data-table="${tableKey}"] tbody`);
   const config = TABLE_CONFIG[tableKey];
   const row = document.createElement("tr");
@@ -49,7 +49,11 @@ const addRow = (tableKey) => {
     input.type = column.type;
     input.name = column.name;
     input.placeholder = column.placeholder || "";
+    if (values[column.name] !== undefined && values[column.name] !== null) {
+      input.value = values[column.name];
+    }
     input.addEventListener("input", calculate);
+    input.addEventListener("input", saveLocalData);
     cell.appendChild(input);
     row.appendChild(cell);
   });
@@ -62,6 +66,7 @@ const addRow = (tableKey) => {
   removeButton.addEventListener("click", () => {
     row.remove();
     calculate();
+    saveLocalData();
   });
   actionCell.appendChild(removeButton);
   row.appendChild(actionCell);
@@ -248,10 +253,177 @@ const calculate = () => {
   });
 };
 
+const STORAGE_KEY = "p2p-fifo-data";
+const CLOUD_CONFIG_KEY = "p2p-fifo-cloud-config";
+
+const serializeTables = () => ({
+  tables: Object.keys(TABLE_CONFIG).reduce((acc, key) => {
+    acc[key] = readTable(key);
+    return acc;
+  }, {}),
+  updatedAt: new Date().toISOString(),
+});
+
+const applyTableData = (tableKey, rows = []) => {
+  const tableBody = document.querySelector(`[data-table="${tableKey}"] tbody`);
+  tableBody.innerHTML = "";
+  if (!rows.length) {
+    addRow(tableKey);
+    return;
+  }
+  rows.forEach((row) => addRow(tableKey, row));
+};
+
+const loadLocalData = () => {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (!stored) return;
+  try {
+    const parsed = JSON.parse(stored);
+    Object.keys(TABLE_CONFIG).forEach((key) => {
+      applyTableData(key, parsed?.tables?.[key] || []);
+    });
+    calculate();
+  } catch (error) {
+    console.warn("No se pudo leer el respaldo local.", error);
+  }
+};
+
+const saveLocalData = () => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(serializeTables()));
+};
+
+const updateStatus = (message, isError = false) => {
+  const status = document.querySelector("[data-cloud-status]");
+  if (!status) return;
+  status.textContent = message;
+  status.classList.toggle("status-error", isError);
+};
+
+const readCloudConfig = () => {
+  const stored = localStorage.getItem(CLOUD_CONFIG_KEY);
+  if (!stored) {
+    return { endpoint: "", apiKey: "" };
+  }
+  try {
+    return JSON.parse(stored);
+  } catch (error) {
+    console.warn("No se pudo leer la configuración de nube.", error);
+    return { endpoint: "", apiKey: "" };
+  }
+};
+
+const writeCloudConfig = (config) => {
+  localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(config));
+};
+
+const setCloudHeaders = (apiKey) => {
+  const headers = { "Content-Type": "application/json" };
+  if (apiKey) {
+    headers.Authorization = `Bearer ${apiKey}`;
+  }
+  return headers;
+};
+
+const syncToCloud = async () => {
+  const endpointInput = document.querySelector("[data-cloud-endpoint]");
+  const apiKeyInput = document.querySelector("[data-cloud-key]");
+  const endpoint = endpointInput.value.trim();
+  const apiKey = apiKeyInput.value.trim();
+
+  if (!endpoint) {
+    updateStatus("Agrega la URL de tu almacenamiento en la nube.", true);
+    return;
+  }
+
+  writeCloudConfig({ endpoint, apiKey });
+
+  try {
+    const response = await fetch(endpoint, {
+      method: "PUT",
+      headers: setCloudHeaders(apiKey),
+      body: JSON.stringify(serializeTables()),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error HTTP ${response.status}`);
+    }
+    updateStatus("Respaldo en la nube actualizado.");
+  } catch (error) {
+    updateStatus("No se pudo guardar en la nube.", true);
+    console.error(error);
+  }
+};
+
+const loadFromCloud = async () => {
+  const endpointInput = document.querySelector("[data-cloud-endpoint]");
+  const apiKeyInput = document.querySelector("[data-cloud-key]");
+  const endpoint = endpointInput.value.trim();
+  const apiKey = apiKeyInput.value.trim();
+
+  if (!endpoint) {
+    updateStatus("Agrega la URL de tu almacenamiento en la nube.", true);
+    return;
+  }
+
+  writeCloudConfig({ endpoint, apiKey });
+
+  try {
+    const response = await fetch(endpoint, {
+      method: "GET",
+      headers: setCloudHeaders(apiKey),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error HTTP ${response.status}`);
+    }
+    const data = await response.json();
+    Object.keys(TABLE_CONFIG).forEach((key) => {
+      applyTableData(key, data?.tables?.[key] || []);
+    });
+    calculate();
+    saveLocalData();
+    updateStatus("Datos cargados desde la nube.");
+  } catch (error) {
+    updateStatus("No se pudo cargar desde la nube.", true);
+    console.error(error);
+  }
+};
+
+const hydrateCloudConfigInputs = () => {
+  const { endpoint, apiKey } = readCloudConfig();
+  const endpointInput = document.querySelector("[data-cloud-endpoint]");
+  const apiKeyInput = document.querySelector("[data-cloud-key]");
+  if (endpointInput) endpointInput.value = endpoint;
+  if (apiKeyInput) apiKeyInput.value = apiKey;
+};
+
 Object.keys(TABLE_CONFIG).forEach((key) => {
   const addButton = document.querySelector(`[data-add="${key}"]`);
-  addButton.addEventListener("click", () => addRow(key));
+  addButton.addEventListener("click", () => {
+    addRow(key);
+    saveLocalData();
+  });
   addRow(key);
 });
 
+const localRestoreButton = document.querySelector("[data-local-restore]");
+if (localRestoreButton) {
+  localRestoreButton.addEventListener("click", () => {
+    loadLocalData();
+    updateStatus("Datos locales restaurados.");
+  });
+}
+
+const cloudSaveButton = document.querySelector("[data-cloud-save]");
+if (cloudSaveButton) {
+  cloudSaveButton.addEventListener("click", syncToCloud);
+}
+
+const cloudLoadButton = document.querySelector("[data-cloud-load]");
+if (cloudLoadButton) {
+  cloudLoadButton.addEventListener("click", loadFromCloud);
+}
+
+hydrateCloudConfigInputs();
+loadLocalData();
 calculate();
