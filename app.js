@@ -22,6 +22,9 @@ const TABLE_CONFIG = {
   },
 };
 
+const TABLE_KEYS = Object.keys(TABLE_CONFIG);
+const STORAGE_KEY = "p2p-transactions";
+
 const currencyFormatter = new Intl.NumberFormat("es-CO", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
@@ -38,35 +41,32 @@ const dateParser = (value) => {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
-const addRow = (tableKey) => {
-  const table = document.querySelector(`[data-table="${tableKey}"] tbody`);
-  const config = TABLE_CONFIG[tableKey];
-  const row = document.createElement("tr");
+const formatNumber = (value) => currencyFormatter.format(value || 0);
 
-  config.columns.forEach((column) => {
-    const cell = document.createElement("td");
-    const input = document.createElement("input");
-    input.type = column.type;
-    input.name = column.name;
-    input.placeholder = column.placeholder || "";
-    input.addEventListener("input", calculate);
-    cell.appendChild(input);
-    row.appendChild(cell);
-  });
+const formatDays = (days) => (Number.isFinite(days) ? `${days} días` : "-");
 
-  const actionCell = document.createElement("td");
-  const removeButton = document.createElement("button");
-  removeButton.type = "button";
-  removeButton.className = "btn btn-secondary";
-  removeButton.textContent = "Eliminar";
-  removeButton.addEventListener("click", () => {
-    row.remove();
-    calculate();
-  });
-  actionCell.appendChild(removeButton);
-  row.appendChild(actionCell);
+const emptyData = () =>
+  TABLE_KEYS.reduce((acc, key) => {
+    acc[key] = [];
+    return acc;
+  }, {});
 
-  table.appendChild(row);
+const loadData = () => {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (!stored) return emptyData();
+  try {
+    const parsed = JSON.parse(stored);
+    return TABLE_KEYS.reduce((acc, key) => {
+      acc[key] = Array.isArray(parsed[key]) ? parsed[key] : [];
+      return acc;
+    }, {});
+  } catch (error) {
+    return emptyData();
+  }
+};
+
+const saveData = (data) => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 };
 
 const readTable = (tableKey) => {
@@ -79,7 +79,7 @@ const readTable = (tableKey) => {
     .map((row) => {
       const values = {};
       config.columns.forEach((column, index) => {
-        const input = row.children[index].querySelector("input");
+        const input = row.children[index]?.querySelector("input");
         if (!input) return;
         values[column.name] =
           column.type === "date" ? input.value : numberParser(input.value);
@@ -89,14 +89,98 @@ const readTable = (tableKey) => {
     .filter((row) => Object.values(row).some((value) => value));
 };
 
-const formatNumber = (value) => currencyFormatter.format(value || 0);
+const addRow = (tableKey, entry = {}) => {
+  const table = document.querySelector(`[data-table="${tableKey}"] tbody`);
+  const config = TABLE_CONFIG[tableKey];
+  const row = document.createElement("tr");
 
-const formatDays = (days) => (Number.isFinite(days) ? `${days} días` : "-");
+  config.columns.forEach((column) => {
+    const cell = document.createElement("td");
+    const input = document.createElement("input");
+    input.type = column.type;
+    input.name = column.name;
+    input.placeholder = column.placeholder || "";
+    if (entry[column.name]) {
+      input.value = entry[column.name];
+    }
+    input.addEventListener("input", syncFromInputs);
+    cell.appendChild(input);
+    row.appendChild(cell);
+  });
 
-const calculate = () => {
-  const usdCop = readTable("usd-cop");
-  const copUsdt = readTable("cop-usdt");
-  const usdtUsd = readTable("usdt-usd");
+  const actionCell = document.createElement("td");
+  const removeButton = document.createElement("button");
+  removeButton.type = "button";
+  removeButton.className = "btn btn-secondary";
+  removeButton.textContent = "Eliminar";
+  removeButton.addEventListener("click", () => {
+    row.remove();
+    syncFromInputs();
+  });
+  actionCell.appendChild(removeButton);
+  row.appendChild(actionCell);
+
+  table.appendChild(row);
+};
+
+const renderHistoryTables = (data) => {
+  TABLE_KEYS.forEach((key) => {
+    const tbody = document.querySelector(`[data-table="${key}"] tbody`);
+    tbody.innerHTML = "";
+    if (data[key].length === 0) {
+      addRow(key);
+      return;
+    }
+    data[key].forEach((entry) => addRow(key, entry));
+  });
+};
+
+const renderSummaryTables = (data) => {
+  TABLE_KEYS.forEach((key) => {
+    const tbody = document.querySelector(`[data-table="${key}"] tbody`);
+    const columns = TABLE_CONFIG[key].columns;
+    tbody.innerHTML = "";
+    const lastEntry = data[key][data[key].length - 1];
+
+    if (!lastEntry) {
+      const row = document.createElement("tr");
+      row.className = "empty-row";
+      const cell = document.createElement("td");
+      cell.colSpan = columns.length;
+      cell.textContent = "Sin transacciones registradas";
+      row.appendChild(cell);
+      tbody.appendChild(row);
+      return;
+    }
+
+    const row = document.createElement("tr");
+    columns.forEach((column) => {
+      const cell = document.createElement("td");
+      const value = lastEntry[column.name];
+      cell.textContent =
+        column.type === "number" ? formatNumber(value) : value || "-";
+      row.appendChild(cell);
+    });
+    tbody.appendChild(row);
+  });
+};
+
+const collectAllTables = () =>
+  TABLE_KEYS.reduce((acc, key) => {
+    acc[key] = readTable(key);
+    return acc;
+  }, {});
+
+const syncFromInputs = () => {
+  const data = collectAllTables();
+  saveData(data);
+  calculate(data);
+};
+
+const calculate = (data) => {
+  const usdCop = data["usd-cop"] || [];
+  const copUsdt = data["cop-usdt"] || [];
+  const usdtUsd = data["usdt-usd"] || [];
 
   const alerts = [];
 
@@ -210,33 +294,41 @@ const calculate = () => {
     totalGain += gain;
   });
 
-  document.querySelector("[data-total=proceeds]").textContent =
-    formatNumber(totalProceeds);
-  document.querySelector("[data-total=basis]").textContent =
-    formatNumber(totalBasis);
-  document.querySelector("[data-total=gain]").textContent =
-    formatNumber(totalGain);
-  document.querySelector("[data-total=cop]").textContent = formatNumber(
-    copLots.reduce((sum, lot) => sum + lot.amount, 0)
-  );
-  document.querySelector("[data-total=usdt]").textContent = formatNumber(
-    usdtLots.reduce((sum, lot) => sum + lot.amount, 0)
-  );
+  const proceedsEl = document.querySelector("[data-total=proceeds]");
+  const basisEl = document.querySelector("[data-total=basis]");
+  const gainEl = document.querySelector("[data-total=gain]");
+  const copEl = document.querySelector("[data-total=cop]");
+  const usdtEl = document.querySelector("[data-total=usdt]");
+
+  if (proceedsEl) proceedsEl.textContent = formatNumber(totalProceeds);
+  if (basisEl) basisEl.textContent = formatNumber(totalBasis);
+  if (gainEl) gainEl.textContent = formatNumber(totalGain);
+  if (copEl)
+    copEl.textContent = formatNumber(
+      copLots.reduce((sum, lot) => sum + lot.amount, 0)
+    );
+  if (usdtEl)
+    usdtEl.textContent = formatNumber(
+      usdtLots.reduce((sum, lot) => sum + lot.amount, 0)
+    );
 
   const alertBox = document.querySelector("[data-alert]");
-  if (alerts.length) {
-    alertBox.textContent = alerts.join(" ");
-    alertBox.classList.add("visible");
-  } else {
-    alertBox.textContent = "";
-    alertBox.classList.remove("visible");
+  if (alertBox) {
+    if (alerts.length) {
+      alertBox.textContent = alerts.join(" ");
+      alertBox.classList.add("visible");
+    } else {
+      alertBox.textContent = "";
+      alertBox.classList.remove("visible");
+    }
   }
 
   const fifoBody = document.querySelector('[data-table="fifo-detail"]');
-  fifoBody.innerHTML = "";
-  fifoRows.forEach((row) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
+  if (fifoBody) {
+    fifoBody.innerHTML = "";
+    fifoRows.forEach((row) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
       <td>${row.saleDate}</td>
       <td>${formatNumber(row.usedUsdt)}</td>
       <td>${formatNumber(row.usdCost)}</td>
@@ -244,14 +336,25 @@ const calculate = () => {
       <td>${formatNumber(row.gain)}</td>
       <td>${formatDays(row.holdingDays)}</td>
     `;
-    fifoBody.appendChild(tr);
-  });
+      fifoBody.appendChild(tr);
+    });
+  }
 };
 
-Object.keys(TABLE_CONFIG).forEach((key) => {
-  const addButton = document.querySelector(`[data-add="${key}"]`);
-  addButton.addEventListener("click", () => addRow(key));
-  addRow(key);
-});
+const pageType = document.body?.dataset.page || "main";
+const storedData = loadData();
 
-calculate();
+if (pageType === "history") {
+  renderHistoryTables(storedData);
+  TABLE_KEYS.forEach((key) => {
+    const addButton = document.querySelector(`[data-add="${key}"]`);
+    addButton?.addEventListener("click", () => {
+      addRow(key);
+      syncFromInputs();
+    });
+  });
+  syncFromInputs();
+} else {
+  renderSummaryTables(storedData);
+  calculate(storedData);
+}
