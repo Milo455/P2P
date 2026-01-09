@@ -98,45 +98,46 @@
         </article>
       </section>
 
-      <section class="card results">
-        <h2>Resumen fiscal</h2>
-        <div class="results-grid">
-          <div>
-            <h3>Totales</h3>
-            <ul>
-              <li><strong>USD recibidos:</strong> <span data-total="proceeds">0.00</span></li>
-              <li><strong>Costo base (USD):</strong> <span data-total="basis">0.00</span></li>
-              <li><strong>Ganancia neta:</strong> <span data-total="gain">0.00</span></li>
-            </ul>
+        <section class="card">
+          <h2>2) Compra de USDT con COP</h2>
+          <p class="hint">
+            Última transacción registrada (para ver el historial completo visita la página
+            de historial).
+          </p>
+          <div class="table-wrapper">
+            <table data-table="cop-usdt">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>COP usados</th>
+                  <th>USDT recibidos</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
           </div>
-          <div>
-            <h3>Inventario pendiente</h3>
-            <ul>
-              <li><strong>COP disponibles:</strong> <span data-total="cop">0.00</span></li>
-              <li><strong>USDT disponibles:</strong> <span data-total="usdt">0.00</span></li>
-            </ul>
+        </section>
+
+        <section class="card">
+          <h2>3) Venta de USDT por USD</h2>
+          <p class="hint">
+            Última transacción registrada (para ver el historial completo visita la página
+            de historial).
+          </p>
+          <div class="table-wrapper">
+            <table data-table="usdt-usd">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>USDT vendidos</th>
+                  <th>USD recibidos</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
           </div>
         </div>
         <div class="alert" data-alert></div>
-      </section>
-
-      <section class="card">
-        <h2>Detalle FIFO</h2>
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Venta USDT (fecha)</th>
-                <th>USDT consumidos</th>
-                <th>Costo USD</th>
-                <th>Proceeds USD</th>
-                <th>Ganancia USD</th>
-                <th>Días tenencia</th>
-              </tr>
-            </thead>
-            <tbody data-table="fifo-detail"></tbody>
-          </table>
-        </div>
       </section>
     </main>
 
