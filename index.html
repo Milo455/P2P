@@ -6,88 +6,96 @@
     <title>Calculadora FIFO P2P</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body data-page="main">
     <header class="hero">
-      <div>
-        <h1>Calculadora FIFO P2P</h1>
-        <p>
-          Registra tus transacciones USD → COP → USDT → USD y calcula la ganancia
-          realizada con base FIFO.
-        </p>
+      <div class="hero-content">
+        <div>
+          <h1>Calculadora FIFO P2P</h1>
+          <p>
+            Registra tus transacciones USD → COP → USDT → USD y calcula la ganancia
+            realizada con base FIFO.
+          </p>
+        </div>
+        <a class="btn btn-secondary" href="history.html">Ver historial completo</a>
       </div>
     </header>
 
-    <main>
-      <section class="card">
-        <h2>1) Compra de COP con USD</h2>
-        <p class="hint">
-          Registra cada compra de COP indicando la fecha, USD utilizados y COP
-          recibidos.
-        </p>
-        <div class="table-wrapper">
-          <table data-table="usd-cop">
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>USD usados</th>
-                <th>COP recibidos</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <button type="button" class="btn" data-add="usd-cop">
-          + Agregar compra USD → COP
-        </button>
-      </section>
+    <main class="page-content">
+      <section class="transaction-columns">
+        <article class="card transaction-card" data-form="usd-cop">
+          <h2>1) Compra de COP con USD</h2>
+          <p class="hint">
+            Agrega una compra y usa la última transacción solo como referencia.
+          </p>
+          <div class="form-grid">
+            <label>
+              Fecha
+              <input type="date" name="date" />
+            </label>
+            <label>
+              USD usados
+              <input type="number" name="usd" placeholder="0.00" />
+            </label>
+            <label>
+              COP recibidos
+              <input type="number" name="cop" placeholder="0" />
+            </label>
+          </div>
+          <button class="btn" type="button" data-action="add">
+            + Agregar compra USD → COP
+          </button>
+          <div class="last-transaction" data-last="usd-cop"></div>
+        </article>
 
-      <section class="card">
-        <h2>2) Compra de USDT con COP</h2>
-        <p class="hint">
-          Cada registro consume COP anteriores (FIFO) y crea lotes de USDT con
-          su costo en USD.
-        </p>
-        <div class="table-wrapper">
-          <table data-table="cop-usdt">
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>COP usados</th>
-                <th>USDT recibidos</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <button type="button" class="btn" data-add="cop-usdt">
-          + Agregar compra COP → USDT
-        </button>
-      </section>
+        <article class="card transaction-card" data-form="cop-usdt">
+          <h2>2) Compra de USDT con COP</h2>
+          <p class="hint">
+            Agrega una compra y usa la última transacción solo como referencia.
+          </p>
+          <div class="form-grid">
+            <label>
+              Fecha
+              <input type="date" name="date" />
+            </label>
+            <label>
+              COP usados
+              <input type="number" name="cop" placeholder="0" />
+            </label>
+            <label>
+              USDT recibidos
+              <input type="number" name="usdt" placeholder="0.00" />
+            </label>
+          </div>
+          <button class="btn" type="button" data-action="add">
+            + Agregar compra COP → USDT
+          </button>
+          <div class="last-transaction" data-last="cop-usdt"></div>
+        </article>
 
-      <section class="card">
-        <h2>3) Venta de USDT por USD</h2>
-        <p class="hint">
-          Cada venta consume USDT anteriores (FIFO) y calcula ganancia o pérdida
-          en USD.
-        </p>
-        <div class="table-wrapper">
-          <table data-table="usdt-usd">
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>USDT vendidos</th>
-                <th>USD recibidos</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <button type="button" class="btn" data-add="usdt-usd">
-          + Agregar venta USDT → USD
-        </button>
+        <article class="card transaction-card" data-form="usdt-usd">
+          <h2>3) Venta de USDT por USD</h2>
+          <p class="hint">
+            Agrega una venta y usa la última transacción solo como referencia.
+          </p>
+          <div class="form-grid">
+            <label>
+              Fecha
+              <input type="date" name="date" />
+            </label>
+            <label>
+              USDT vendidos
+              <input type="number" name="usdt" placeholder="0.00" />
+            </label>
+            <label>
+              USD recibidos
+              <input type="number" name="usd" placeholder="0.00" />
+            </label>
+          </div>
+          <button class="btn" type="button" data-action="add">
+            + Agregar venta USDT → USD
+          </button>
+          <div class="last-transaction" data-last="usdt-usd"></div>
+        </article>
       </section>
 
       <section class="card results">

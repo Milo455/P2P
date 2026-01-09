@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Historial FIFO P2P</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-page="history">
+    <header class="hero">
+      <div class="hero-content">
+        <div>
+          <h1>Historial de transacciones</h1>
+          <p>
+            Gestiona todas tus compras y ventas para el cálculo FIFO y consulta el detalle
+            completo.
+          </p>
+        </div>
+        <a class="btn btn-secondary" href="index.html">Volver al resumen</a>
+      </div>
+    </header>
+
+    <main class="columns">
+      <div class="column">
+        <section class="card">
+          <h2>Historial global (ordenado)</h2>
+          <p class="hint">
+            Todas las transacciones ordenadas por fecha para una vista general.
+          </p>
+          <ol class="transaction-list" data-list="all"></ol>
+        </section>
+
+        <section class="card">
+          <h2>Historial por tipo</h2>
+          <p class="hint">
+            Transacciones separadas por categoría y ordenadas cronológicamente.
+          </p>
+
+          <div class="history-groups">
+            <div>
+              <h3>Compras USD → COP</h3>
+              <ol class="transaction-list" data-list="usd-cop"></ol>
+            </div>
+            <div>
+              <h3>Compras COP → USDT</h3>
+              <ol class="transaction-list" data-list="cop-usdt"></ol>
+            </div>
+            <div>
+              <h3>Ventas USDT → USD</h3>
+              <ol class="transaction-list" data-list="usdt-usd"></ol>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="column">
+        <section class="card results">
+          <h2>Resumen fiscal</h2>
+          <div class="results-grid">
+            <div>
+              <h3>Totales</h3>
+              <ul>
+                <li><strong>USD recibidos:</strong> <span data-total="proceeds">0.00</span></li>
+                <li><strong>Costo base (USD):</strong> <span data-total="basis">0.00</span></li>
+                <li><strong>Ganancia neta:</strong> <span data-total="gain">0.00</span></li>
+              </ul>
+            </div>
+            <div>
+              <h3>Inventario pendiente</h3>
+              <ul>
+                <li><strong>COP disponibles:</strong> <span data-total="cop">0.00</span></li>
+                <li><strong>USDT disponibles:</strong> <span data-total="usdt">0.00</span></li>
+              </ul>
+            </div>
+          </div>
+          <div class="alert" data-alert></div>
+        </section>
+
+        <section class="card">
+          <h2>Detalle FIFO</h2>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Venta USDT (fecha)</th>
+                  <th>USDT consumidos</th>
+                  <th>Costo USD</th>
+                  <th>Proceeds USD</th>
+                  <th>Ganancia USD</th>
+                  <th>Días tenencia</th>
+                </tr>
+              </thead>
+              <tbody data-table="fifo-detail"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer>
+      <p>
+        La calculadora usa FIFO para asignar costo. Verifica con tu asesor
+        fiscal los requisitos locales.
+      </p>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
