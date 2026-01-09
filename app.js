@@ -3,13 +3,13 @@ const TABLE_CONFIG = {
     columns: [
       { name: "date", type: "date" },
       { name: "usd", type: "number", placeholder: "0.00" },
-      { name: "cop", type: "number", placeholder: "0" },
+      { name: "cop", type: "number", placeholder: "0", format: "cop" },
     ],
   },
   "cop-usdt": {
     columns: [
       { name: "date", type: "date" },
-      { name: "cop", type: "number", placeholder: "0" },
+      { name: "cop", type: "number", placeholder: "0", format: "cop" },
       { name: "usdt", type: "number", placeholder: "0.00" },
     ],
   },
@@ -30,8 +30,19 @@ const currencyFormatter = new Intl.NumberFormat("es-CO", {
   maximumFractionDigits: 2,
 });
 
+const copInputFormatter = new Intl.NumberFormat("en-US", {
+  maximumFractionDigits: 0,
+});
+
+const parseNumberValue = (value) => {
+  if (!value) return null;
+  const sanitized = value.replace(/,/g, "");
+  const parsed = Number.parseFloat(sanitized);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
 const numberParser = (value) => {
-  const parsed = Number.parseFloat(value);
+  const parsed = parseNumberValue(value);
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
@@ -97,7 +108,7 @@ const addRow = (tableKey, entry = {}) => {
   config.columns.forEach((column) => {
     const cell = document.createElement("td");
     const input = document.createElement("input");
-    input.type = column.type;
+    input.type = column.format === "cop" ? "text" : column.type;
     input.name = column.name;
     input.placeholder = column.placeholder || "";
     if (entry[column.name]) {
