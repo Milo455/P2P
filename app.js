@@ -33,8 +33,19 @@ const currencyFormatter = new Intl.NumberFormat("es-CO", {
   maximumFractionDigits: 2,
 });
 
+const copInputFormatter = new Intl.NumberFormat("en-US", {
+  maximumFractionDigits: 0,
+});
+
+const parseNumberValue = (value) => {
+  if (!value) return null;
+  const sanitized = value.replace(/,/g, "");
+  const parsed = Number.parseFloat(sanitized);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
 const numberParser = (value) => {
-  const parsed = Number.parseFloat(value);
+  const parsed = parseNumberValue(value);
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
