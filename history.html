@@ -3,20 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Calculadora FIFO P2P</title>
+    <title>Historial FIFO P2P</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body data-page="main">
+  <body data-page="history">
     <header class="hero">
       <div class="hero-content">
         <div>
-          <h1>Calculadora FIFO P2P</h1>
+          <h1>Historial de transacciones</h1>
           <p>
-            Registra tus transacciones USD → COP → USDT → USD y calcula la ganancia
-            realizada con base FIFO.
+            Gestiona todas tus compras y ventas para el cálculo FIFO y consulta el detalle
+            completo.
           </p>
         </div>
-        <a class="btn btn-secondary" href="history.html">Ver historial completo</a>
+        <a class="btn btn-secondary" href="index.html">Volver al resumen</a>
       </div>
     </header>
 
@@ -25,8 +25,8 @@
         <section class="card">
           <h2>1) Compra de COP con USD</h2>
           <p class="hint">
-            Última transacción registrada (para ver el historial completo visita la página
-            de historial).
+            Registra cada compra de COP indicando la fecha, USD utilizados y COP
+            recibidos.
           </p>
           <div class="table-wrapper">
             <table data-table="usd-cop">
@@ -35,18 +35,22 @@
                   <th>Fecha</th>
                   <th>USD usados</th>
                   <th>COP recibidos</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody></tbody>
             </table>
           </div>
+          <button type="button" class="btn" data-add="usd-cop">
+            + Agregar compra USD → COP
+          </button>
         </section>
 
         <section class="card">
           <h2>2) Compra de USDT con COP</h2>
           <p class="hint">
-            Última transacción registrada (para ver el historial completo visita la página
-            de historial).
+            Cada registro consume COP anteriores (FIFO) y crea lotes de USDT con
+            su costo en USD.
           </p>
           <div class="table-wrapper">
             <table data-table="cop-usdt">
@@ -55,18 +59,22 @@
                   <th>Fecha</th>
                   <th>COP usados</th>
                   <th>USDT recibidos</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody></tbody>
             </table>
           </div>
+          <button type="button" class="btn" data-add="cop-usdt">
+            + Agregar compra COP → USDT
+          </button>
         </section>
 
         <section class="card">
           <h2>3) Venta de USDT por USD</h2>
           <p class="hint">
-            Última transacción registrada (para ver el historial completo visita la página
-            de historial).
+            Cada venta consume USDT anteriores (FIFO) y calcula ganancia o pérdida
+            en USD.
           </p>
           <div class="table-wrapper">
             <table data-table="usdt-usd">
@@ -75,11 +83,15 @@
                   <th>Fecha</th>
                   <th>USDT vendidos</th>
                   <th>USD recibidos</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody></tbody>
             </table>
           </div>
+          <button type="button" class="btn" data-add="usdt-usd">
+            + Agregar venta USDT → USD
+          </button>
         </section>
       </div>
 
@@ -104,6 +116,25 @@
             </div>
           </div>
           <div class="alert" data-alert></div>
+        </section>
+
+        <section class="card">
+          <h2>Detalle FIFO</h2>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Venta USDT (fecha)</th>
+                  <th>USDT consumidos</th>
+                  <th>Costo USD</th>
+                  <th>Proceeds USD</th>
+                  <th>Ganancia USD</th>
+                  <th>Días tenencia</th>
+                </tr>
+              </thead>
+              <tbody data-table="fifo-detail"></tbody>
+            </table>
+          </div>
         </section>
       </div>
     </main>
