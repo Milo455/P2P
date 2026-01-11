@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
@@ -12,11 +12,13 @@
         <div>
           <h1>Calculadora FIFO P2P</h1>
           <p>
-            Registra tus transacciones USD → COP → USDT → USD y calcula la ganancia
-            realizada con base FIFO.
+            Registra tus transacciones USD → COP → USDT → USD y calcula la
+            ganancia realizada con base FIFO.
           </p>
         </div>
-        <a class="btn btn-secondary" href="history.html">Ver historial completo</a>
+        <a class="btn btn-secondary" href="history.html"
+          >Ver historial completo</a
+        >
       </div>
     </header>
 
@@ -97,48 +99,7 @@
           <div class="last-transaction" data-last="usdt-usd"></div>
         </article>
       </section>
-
-        <section class="card">
-          <h2>2) Compra de USDT con COP</h2>
-          <p class="hint">
-            Última transacción registrada (para ver el historial completo visita la página
-            de historial).
-          </p>
-          <div class="table-wrapper">
-            <table data-table="cop-usdt">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>COP usados</th>
-                  <th>USDT recibidos</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </section>
-
-        <section class="card">
-          <h2>3) Venta de USDT por USD</h2>
-          <p class="hint">
-            Última transacción registrada (para ver el historial completo visita la página
-            de historial).
-          </p>
-          <div class="table-wrapper">
-            <table data-table="usdt-usd">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>USDT vendidos</th>
-                  <th>USD recibidos</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-        <div class="alert" data-alert></div>
-      </section>
+      <div class="alert" data-alert></div>
     </main>
 
     <footer>
