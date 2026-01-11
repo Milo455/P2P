@@ -12,6 +12,13 @@ const TABLE_CONFIG = {
     columns: [
       { name: "date", type: "date", label: "Fecha" },
       { name: "cop", type: "number", placeholder: "0", label: "COP usados" },
+      {
+        name: "tax",
+        type: "number",
+        placeholder: "0",
+        label: "Impuesto 4x1000",
+        optional: true,
+      },
       { name: "usdt", type: "number", placeholder: "0.00", label: "USDT recibidos" },
     ],
   },
@@ -193,7 +200,15 @@ const readEntryFromForm = (form, key) => {
     } else {
       const parsed = numberParser(input.value);
       entry[column.name] = parsed;
-      if (!Number.isFinite(parsed) || parsed <= 0) {
+      if (!Number.isFinite(parsed)) {
+        valid = false;
+        return;
+      }
+      if (column.optional) {
+        if (parsed < 0) {
+          valid = false;
+        }
+      } else if (parsed <= 0) {
         valid = false;
       }
     }
@@ -317,7 +332,8 @@ const calculate = (data) => {
       return;
     }
 
-    let remainingCop = entry.cop;
+    const tax = Number.isFinite(entry.tax) ? entry.tax : 0;
+    let remainingCop = entry.cop + tax;
     let totalUsdCost = 0;
 
     while (remainingCop > 0 && copLots.length) {
