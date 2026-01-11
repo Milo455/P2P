@@ -27,6 +27,12 @@ const TABLE_CONFIG = {
 
 const TABLE_KEYS = Object.keys(TABLE_CONFIG);
 const STORAGE_KEY = "p2p-transactions";
+const STORAGE_FORMAT_KEY = "p2p-transactions-format";
+const STORAGE_FORMAT_ENCODED = "encoded-v1";
+const SESSION_KEY = "p2p-personal-key";
+
+const textEncoder = new TextEncoder();
+const textDecoder = new TextDecoder();
 
 const currencyFormatter = new Intl.NumberFormat("es-CO", {
   minimumFractionDigits: 2,
@@ -73,22 +79,86 @@ const emptyData = () =>
     return acc;
   }, {});
 
+const getPersonalKey = () => {
+  const existing = sessionStorage.getItem(SESSION_KEY);
+  if (existing) {
+    return existing;
+  }
+  const provided = window.prompt(
+    "Ingresa tu clave personal para acceder a tus datos."
+  );
+  if (!provided) {
+    return null;
+  }
+  sessionStorage.setItem(SESSION_KEY, provided);
+  return provided;
+};
+
+const xorBytes = (data, key) =>
+  data.map((byte, index) => byte ^ key[index % key.length]);
+
+const encodePayload = (payload, key) => {
+  const dataBytes = Array.from(textEncoder.encode(payload));
+  const keyBytes = Array.from(textEncoder.encode(key));
+  const encodedBytes = xorBytes(dataBytes, keyBytes);
+  return btoa(String.fromCharCode(...encodedBytes));
+};
+
+const decodePayload = (payload, key) => {
+  const dataBytes = Array.from(atob(payload), (char) => char.charCodeAt(0));
+  const keyBytes = Array.from(textEncoder.encode(key));
+  const decodedBytes = xorBytes(dataBytes, keyBytes);
+  return textDecoder.decode(Uint8Array.from(decodedBytes));
+};
+
+const normalizeData = (parsed) =>
+  TABLE_KEYS.reduce((acc, key) => {
+    acc[key] = Array.isArray(parsed[key]) ? parsed[key] : [];
+    return acc;
+  }, {});
+
+const saveData = (data) => {
+  const key = getPersonalKey();
+  if (!key) return;
+  const payload = JSON.stringify(data);
+  const encoded = encodePayload(payload, key);
+  localStorage.setItem(STORAGE_KEY, encoded);
+  localStorage.setItem(STORAGE_FORMAT_KEY, STORAGE_FORMAT_ENCODED);
+};
+
 const loadData = () => {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (!stored) return emptyData();
+
+  const format = localStorage.getItem(STORAGE_FORMAT_KEY);
+  if (!format) {
+    try {
+      const parsed = JSON.parse(stored);
+      const normalized = normalizeData(parsed);
+      const key = getPersonalKey();
+      if (key) {
+        saveData(normalized);
+      }
+      return normalized;
+    } catch (error) {
+      return emptyData();
+    }
+  }
+
+  if (format !== STORAGE_FORMAT_ENCODED) {
+    return emptyData();
+  }
+
+  const key = getPersonalKey();
+  if (!key) return emptyData();
+
   try {
-    const parsed = JSON.parse(stored);
-    return TABLE_KEYS.reduce((acc, key) => {
-      acc[key] = Array.isArray(parsed[key]) ? parsed[key] : [];
-      return acc;
-    }, {});
+    const decoded = decodePayload(stored, key);
+    const parsed = JSON.parse(decoded);
+    return normalizeData(parsed);
   } catch (error) {
     return emptyData();
   }
-};
-
-const saveData = (data) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 };
 
 const clearForm = (form, key) => {
